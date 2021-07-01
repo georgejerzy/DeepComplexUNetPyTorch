@@ -7,6 +7,7 @@ from .constant import *
 from .utils import realimag, istft, cut_padding
 from .unet import UNet
 
+DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 class SourceSeparator(nn.Module):
     def __init__(self, complex, model_complexity, model_depth, log_amp, padding_mode):
@@ -42,7 +43,7 @@ class SourceSeparator(nn.Module):
         audict = SourceSeparator.preprocess_audio(audio, sequence_length=16384)
         with torch.no_grad():
             for k, v in audict.items():
-                audict[k] = v.unsqueeze(1).cuda()
+                audict[k] = v.unsqueeze(1).to(DEVICE)
             Y_hat = self.forward(audict, istft=False).squeeze(1)
             y_hat = istft(Y_hat, HOP_LENGTH, length=audio.shape[-1])
             if normalize:

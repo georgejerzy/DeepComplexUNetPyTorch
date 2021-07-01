@@ -16,6 +16,8 @@ from DCUNet.source_separator import SourceSeparator
 from DCUNet.criterion import WeightedSDR
 from DCUNet.metric import PESQ
 
+DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 args = PinkBlack.io.setup(default_args=dict(gpu="0",
                                             batch_size=12,
                                             train_signal="/data/jongho/data/2019challenge/ss/reference/16k/clean_trainset_28spk_wav/",
@@ -116,11 +118,11 @@ else:
         with torch.no_grad():
             return -loss(output, bd)
 
-net = SourceSeparator(complex=args.complex, model_complexity=args.model_complexity, model_depth=args.model_depth, log_amp=args.log_amp, padding_mode=args.padding_mode).cuda()
+net = SourceSeparator(complex=args.complex, model_complexity=args.model_complexity, model_depth=args.model_depth, log_amp=args.log_amp, padding_mode=args.padding_mode).to(DEVICE)
 print(net)
 
 if args.multi_gpu:
-    net = nn.DataParallel(net).cuda()
+    net = nn.DataParallel(net).to(DEVICE)
 
 if args.optimizer == "adam":
     optimizer = optim.Adam(filter(lambda x: x.requires_grad, net.parameters()), lr=args.lr)
